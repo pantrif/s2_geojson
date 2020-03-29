@@ -5,6 +5,9 @@ import (
 	"github.com/golang/geo/s1"
 	"github.com/golang/geo/s2"
 	"github.com/pantrif/s2-geojson/pkg/geo"
+	geojson "github.com/paulmach/go.geojson"
+	"github.com/uber/h3-go"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -52,6 +55,51 @@ func (u GeometryController) Cover(c *gin.Context) {
 		"max_level_geojson": maxLevel,
 		"cell_tokens":       strings.Join(tokens, ","),
 		"cells":             s2cells,
+	})
+}
+
+// CoverH3 returns a set of H3 hexagons that cover the input geometry.
+func (u GeometryController) CoverH3(c *gin.Context) {
+	gJSON := []byte(c.PostForm("geojson"))
+	res, err := strconv.Atoi(c.PostForm("h3_resolution"))
+
+	features, err := geo.DecodeGeoJSON(gJSON)
+	for _, f := range features {
+		log.Print(f.Geometry.Polygon)
+	}
+	if err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	geoJsonCollection := geojson.NewFeatureCollection()
+	for _, f := range features {
+		if !f.Geometry.IsPolygon() {
+			// Skip non-polygon geometries.
+			continue
+		}
+		for _, p := range f.Geometry.Polygon {
+			var hexagons []h3.H3Index
+			var h3Points []h3.GeoCoord
+
+			for _, ll := range p {
+				h3Points = append(h3Points, h3.GeoCoord{Latitude:ll[1], Longitude: ll[0]})
+			}
+			hexagons = h3.Polyfill(h3.GeoPolygon{Geofence: h3Points}, res)
+			compacted := h3.Compact(hexagons)
+
+			for _, c := range compacted {
+				coords := geo.H3IndexToCoordinates(c)
+				// Add hexagon to the feature collection.
+				geoJsonCollection.AddFeature(geojson.NewPolygonFeature([][][]float64{coords}))
+			}
+		}
+	}
+
+	c.JSON(200, gin.H{
+		"hexagons_geojson":  geoJsonCollection,
 	})
 }
 
