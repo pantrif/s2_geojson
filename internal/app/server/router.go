@@ -23,5 +23,7 @@ func NewRouter(root string) *gin.Engine {
 	r.POST("/cover", p.Cover)
 	r.POST("/check_intersection", p.CheckIntersection)
 
+	r.POST("/cover-h3", p.CoverH3)
+
 	return r
 }

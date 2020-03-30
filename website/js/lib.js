@@ -4,6 +4,7 @@ let polygon_cells = [];
 let circle_cells = [];
 
 let coverUrl = '/cover';
+let coverH3Url = '/cover-h3';
 let checkPointUrl = '/check_intersection';
 let self, app;
 
@@ -58,6 +59,13 @@ let s2_geojson = {
         max_level_circle_value.innerHTML = max_level_circle_slider.value;
         max_level_circle_slider.oninput = function() {
             max_level_circle_value.innerHTML = this.value;
+        };
+
+        let h3_resolution_slider = document.getElementById("h3_resolution");
+        let h3_resolution_value = document.getElementById("h3_resolution_value");
+        h3_resolution_value.innerHTML = h3_resolution_slider.value;
+        h3_resolution_slider.oninput = function() {
+            h3_resolution_value.innerHTML = this.value;
         };
 
         let geoJsonInput = document.getElementById("geoJsonInput");
@@ -175,7 +183,11 @@ let s2_geojson = {
                 "features": [geoJsonLayer.toGeoJSON(14)]
             };
             geoJsonEditor.setValue(JSON.stringify(json,null, 2));
-            self.regionCover();
+            if (document.getElementById("enable-h3").checked == true) {
+                self.regionCoverH3();
+            } else {
+                self.regionCover();
+            }
             map.addLayer(geoJsonLayer);
             if (type === 'polygon') {
                 map.fitBounds(geoJsonLayer.getBounds());
@@ -209,6 +221,20 @@ let s2_geojson = {
             let s2cells = res.cells;
             for (let i = 0; i < s2cells.length; i++) {
                 polygon_cells.push(L.polygon(s2cells[i], {color: 'red'}).addTo(map));
+            }
+        });
+    },
+    regionCoverH3 : function() {
+        self.removePolygonCells();
+
+        let h3_resolution = document.getElementById("h3_resolution").value;
+
+        let params = "h3_resolution=" + h3_resolution + "&geojson=" + geoJsonEditor.getValue().trim();
+        self.postRequest(params, coverH3Url, function (response) {
+            let res = JSON.parse(response);
+            let h3Hexagons = res.hexagons_geojson;
+            for (let i = 0; i < h3Hexagons.features.length; i++) {
+                polygon_cells.push(L.geoJSON(h3Hexagons.features[i], {color: 'red'}).addTo(map));
             }
         });
     },

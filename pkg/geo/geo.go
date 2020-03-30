@@ -3,6 +3,7 @@ package geo
 import (
 	"github.com/golang/geo/s2"
 	"github.com/paulmach/go.geojson"
+	"github.com/uber/h3-go"
 )
 
 const (
@@ -76,4 +77,16 @@ func edgesOfCell(c s2.Cell) [][]float64 {
 		edges = append(edges, []float64{latLng.Lat.Degrees(), latLng.Lng.Degrees()})
 	}
 	return edges
+}
+
+func H3IndexToCoordinates(i h3.H3Index) [][]float64 {
+	// Turns an H3 hexagon into a list of (lon, lat) pairs.
+	var coords [][]float64
+
+	boundary := h3.ToGeoBoundary(i)
+	for _, b := range boundary {
+		coords = append(coords, []float64{b.Longitude, b.Latitude})
+	}
+
+	return coords
 }

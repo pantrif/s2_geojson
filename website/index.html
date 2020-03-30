@@ -37,10 +37,12 @@
 
             <input type="radio" id="tab1" name="tabs" class="tab-locator" hidden checked />
             <input type="radio" id="tab2" name="tabs" class="tab-locator" hidden />
+            <input type="radio" id="tab3" name="tabs" class="tab-locator" hidden />
 
             <ul class="tab tab-block">
-                <li class="tab-item"><label for="tab1"><a>JSON</a></label></li>
+                <li class="tab-item"><label for="tab1"><a>S2 API</a></label></li>
                 <li class="tab-item"><label for="tab2"><a>Marker Options</a></label></li>
+                <li class="tab-item"><label for="tab3"><a>H3 API</a></label></li>
             </ul>
 
 
@@ -86,6 +88,15 @@
                     </div>
 
 
+                </div>
+
+                <div class="tab-content" id="h3-tab">
+                    <label class="form-label" for="enable-h3">Enable H3: </label>
+                    <input type="checkbox" id="enable-h3"/>
+                    <div class="form-group">
+                        <label class="form-label" for="h3_resolution">Resolution: <span id="h3_resolution_value"></span></label>
+                        <input type="range" class="range_input" name="h3_resolution" id="h3_resolution" value="10" min="1" max="16"><br>
+                    </div>
                 </div>
             </div>
 

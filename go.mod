@@ -14,6 +14,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/paulmach/go.geojson v1.4.0
 	github.com/stretchr/testify v1.4.0
+	github.com/uber/h3-go v3.0.1+incompatible
 	golang.org/x/sys v0.0.0-20200321134203-328b4cd54aae // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
