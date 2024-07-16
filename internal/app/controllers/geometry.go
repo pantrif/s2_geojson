@@ -31,6 +31,18 @@ func (u GeometryController) Cover(c *gin.Context) {
 	var s2cells [][][]float64
 
 	for _, f := range fs {
+		if f.Geometry.IsMultiPolygon() {
+			for _, mp := range f.Geometry.MultiPolygon {
+				for _, p := range mp {
+					p := geo.PointsToPolygon(p)
+					_, t, c := geo.CoverPolygon(p, maxLevel, minLevel)
+					s2cells = append(s2cells, c...)
+					tokens = append(tokens, t...)
+
+				}
+			}
+
+		}
 
 		if f.Geometry.IsPolygon() {
 			for _, p := range f.Geometry.Polygon {
