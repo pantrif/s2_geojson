@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang/geo/s1"
 	"github.com/golang/geo/s2"
 	"github.com/pantrif/s2-geojson/pkg/geo"
-	"strconv"
-	"strings"
 )
 
 // GeometryController struct
@@ -30,16 +31,27 @@ func (u GeometryController) Cover(c *gin.Context) {
 	var tokens []string
 	var s2cells [][][]float64
 
-	for _, f := range fs {
+	processPolygon := func(polygon [][][]float64, tokens []string, s2cells [][][]float64) ([]string, [][][]float64) {
+		for _, p := range polygon {
+			p := geo.PointsToPolygon(p)
+			_, t, c := geo.CoverPolygon(p, maxLevel, minLevel)
+			s2cells = append(s2cells, c...)
+			tokens = append(tokens, t...)
+		}
+		return tokens, s2cells
+	}
 
-		if f.Geometry.IsPolygon() {
-			for _, p := range f.Geometry.Polygon {
-				p := geo.PointsToPolygon(p)
-				_, t, c := geo.CoverPolygon(p, maxLevel, minLevel)
-				s2cells = append(s2cells, c...)
-				tokens = append(tokens, t...)
+	for _, f := range fs {
+		if f.Geometry.IsMultiPolygon() {
+			for _, mp := range f.Geometry.MultiPolygon {
+				tokens, s2cells = processPolygon(mp, tokens, s2cells)
 			}
 		}
+
+		if f.Geometry.IsPolygon() {
+			tokens, s2cells = processPolygon(f.Geometry.Polygon, tokens, s2cells)
+		}
+
 		if f.Geometry.IsPoint() {
 			point := geo.Point{Lat: f.Geometry.Point[1], Lng: f.Geometry.Point[0]}
 			_, t, c := geo.CoverPoint(point, maxLevel)
